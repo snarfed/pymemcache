@@ -1555,6 +1555,7 @@ class TestMockClient(ClientTestMixin, unittest.TestCase):
 
         result = client.set(b"key2", dict(hello="world"), noreply=False)
         result = client.get(b"key2")
+        print(repr(result), repr(dict(hello="world")))
         assert result == dict(hello="world")
 
 

@@ -5,12 +5,21 @@ from pymemcache.test.utils import MockMemcacheClient
 
 
 @pytest.mark.unit()
-def test_get_set():
+def test_get_set_integer():
     client = MockMemcacheClient()
     assert client.get(b"hello") is None
 
     client.set(b"hello", 12)
-    assert client.get(b"hello") == 12
+    assert client.get(b"hello") == b"12"
+
+
+@pytest.mark.unit()
+def test_get_set_float():
+    client = MockMemcacheClient()
+    assert client.get(b"hello") is None
+
+    client.set(b"hello", 1.2)
+    assert client.get(b"hello") == b"1.2"
 
 
 @pytest.mark.unit()
@@ -34,12 +43,12 @@ def test_get_set_string_with_serde():
 
 
 @pytest.mark.unit()
-def test_get_set_unicide_key():
+def test_get_set_unicode_key():
     client = MockMemcacheClient()
     assert client.get("hello") is None
 
     client.set(b"hello", 12)
-    assert client.get("hello") == 12
+    assert client.get("hello") == b"12"
 
 
 @pytest.mark.unit()
@@ -59,10 +68,10 @@ def test_get_many_set_many():
     client.set(b"h", 1)
 
     result = client.get_many([b"h", b"e", b"l", b"o"])
-    assert result == {b"h": 1}
+    assert result == {b"h": b"1"}
 
     # Convert keys into bytes
-    d = {k.encode("ascii"): v for k, v in dict(h=1, e=2, z=3).items()}
+    d = {k.encode("ascii"): str(v).encode("ascii") for k, v in dict(h=1, e=2, z=3).items()}
     client.set_many(d)
     assert client.get_many([b"h", b"e", b"z", b"o"]) == d
 
@@ -94,10 +103,10 @@ def test_add():
     client = MockMemcacheClient()
 
     client.add(b"k", 2)
-    assert client.get(b"k") == 2
+    assert client.get(b"k") == b"2"
 
     client.add(b"k", 25)
-    assert client.get(b"k") == 2
+    assert client.get(b"k") == b"2"
 
 
 @pytest.mark.unit()
@@ -105,7 +114,7 @@ def test_delete():
     client = MockMemcacheClient()
 
     client.add(b"k", 2)
-    assert client.get(b"k") == 2
+    assert client.get(b"k") == b"2"
 
     client.delete(b"k")
     assert client.get(b"k") is None
@@ -118,10 +127,10 @@ def test_incr_decr():
     client.add(b"k", 2)
 
     client.incr(b"k", 4)
-    assert client.get(b"k") == 6
+    assert client.get(b"k") == b"6"
 
     client.decr(b"k", 2)
-    assert client.get(b"k") == 4
+    assert client.get(b"k") == b"4"
 
 
 @pytest.mark.unit()

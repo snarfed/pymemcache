@@ -94,7 +94,9 @@ class MockMemcacheClient:
 
     def set(self, key, value, expire=0, noreply=True, flags=None):
         key = self.check_key(key)
-        if isinstance(value, str) and not isinstance(value, bytes):
+        if not isinstance(value, bytes):
+            if not isinstance(value, str):
+                value = str(value)
             try:
                 value.encode(self.encoding)
             except (UnicodeEncodeError, UnicodeDecodeError):
@@ -122,15 +124,15 @@ class MockMemcacheClient:
         current = self.get(key)
         present = current is not None
         if present:
-            self.set(key, current + value, noreply=noreply)
-        return None if noreply or not present else current + value
+            self.set(key, int(current) + value, noreply=noreply)
+        return None if noreply or not present else int(current) + value
 
     def decr(self, key, value, noreply=False):
         current = self.get(key)
         present = current is not None
         if present:
-            self.set(key, current - value, noreply=noreply)
-        return None if noreply or not present else current - value
+            self.set(key, int(current) - value, noreply=noreply)
+        return None if noreply or not present else int(current) - value
 
     def add(self, key, value, expire=0, noreply=True, flags=None):
         current = self.get(key)
