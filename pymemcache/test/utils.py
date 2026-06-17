@@ -50,6 +50,7 @@ class MockMemcacheClient:
 
         self.serde = serde or LegacyWrappingSerde(serializer, deserializer)
         self.allow_unicode_keys = allow_unicode_keys
+        self.default_noreply = default_noreply
 
         # Unused, but present for interface compatibility
         self.server = server
@@ -116,7 +117,9 @@ class MockMemcacheClient:
 
     get_multi = get_many
 
-    def set(self, key, value, expire=0, noreply=True, flags=None):
+    def set(self, key, value, expire=0, noreply=None, flags=None):
+        if noreply is None:
+            noreply = self.default_noreply
         key = self.check_key(key)
         if isinstance(value, str) and not isinstance(value, bytes):
             try:
@@ -134,7 +137,9 @@ class MockMemcacheClient:
         self._cas_ids[key] = str(time.time_ns()).encode()
         return True
 
-    def set_many(self, values, expire=0, noreply=True, flags=None):
+    def set_many(self, values, expire=0, noreply=None, flags=None):
+        if noreply is None:
+            noreply = self.default_noreply
         result = []
         for key, value in values.items():
             ret = self.set(key, value, expire, noreply, flags=flags)
@@ -158,25 +163,33 @@ class MockMemcacheClient:
             self.set(key, current - value, noreply=noreply)
         return None if noreply or not present else current - value
 
-    def add(self, key, value, expire=0, noreply=True, flags=None):
+    def add(self, key, value, expire=0, noreply=None, flags=None):
+        if noreply is None:
+            noreply = self.default_noreply
         current = self.get(key)
         present = current is not None
         if not present:
             self.set(key, value, expire, noreply, flags=flags)
         return noreply or not present
 
-    def delete(self, key, noreply=True):
+    def delete(self, key, noreply=None):
+        if noreply is None:
+            noreply = self.default_noreply
         key = self.check_key(key)
         current = self._contents.pop(key, None)
         present = current is not None
         return noreply or present
 
-    def delete_many(self, keys, noreply=True):
+    def delete_many(self, keys, noreply=None):
+        if noreply is None:
+            noreply = self.default_noreply
         for key in keys:
             self.delete(key, noreply)
         return True
 
-    def prepend(self, key, value, expire=0, noreply=True, flags=None):
+    def prepend(self, key, value, expire=0, noreply=None, flags=None):
+        if noreply is None:
+            noreply = self.default_noreply
         current = self.get(key)
         if current is not None:
             if isinstance(value, str) and not isinstance(value, bytes):
@@ -187,7 +200,9 @@ class MockMemcacheClient:
             self.set(key, value + current, expire, noreply, flags=flags)
         return True
 
-    def append(self, key, value, expire=0, noreply=True, flags=None):
+    def append(self, key, value, expire=0, noreply=None, flags=None):
+        if noreply is None:
+            noreply = self.default_noreply
         current = self.get(key)
         if current is not None:
             if isinstance(value, str) and not isinstance(value, bytes):
@@ -243,7 +258,9 @@ class MockMemcacheClient:
 
         return self.set(key, value, noreply=noreply, **kwargs)
 
-    def touch(self, key, expire=0, noreply=True):
+    def touch(self, key, expire=0, noreply=None):
+        if noreply is None:
+            noreply = self.default_noreply
         current = self.get(key)
         present = current is not None
         if present:
@@ -256,7 +273,9 @@ class MockMemcacheClient:
     def version(self):
         return "MockMemcacheClient"
 
-    def flush_all(self, delay=0, noreply=True):
+    def flush_all(self, delay=0, noreply=None):
+        if noreply is None:
+            noreply = self.default_noreply
         self.clear()
 
         return noreply or self._contents == {}
